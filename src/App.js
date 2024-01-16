@@ -1,25 +1,64 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import TodoItem from "./components/TodoItem/TodoItem";
+
+const API_BASE = 'http://localhost:4001/to-do-app';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    const [items, setItems] = useState([]);
+
+    const [input, setInput] = useState("");
+
+    useEffect(() => {
+        GetTodos();
+    }, []);
+
+    const handleChange = (e) => {
+        setInput(e.target.value);
+    }
+
+    const GetTodos = () => {
+        fetch(API_BASE)
+            .then(res => res.json())
+            .then(data => setItems(data))
+            .catch(err => console.log(err))
+    }
+
+    const addItem = async() => {
+        const data = await fetch(API_BASE + "/new", {
+            method: "POST",
+            headers: {
+                "content-type" : "application/json"
+            },
+            body: JSON.stringify({
+                name: input,
+                completed: false
+            })
+        }).then(res => res.json())
+        console.log(data)
+        await GetTodos()
+        setInput('')
+    }
+
+    return (
+        <div className="container">
+            <div className="heading">
+                <h1>TO-DO-APP</h1>
+            </div>
+            <div className="form">
+                <input type='text' value={input} onChange={handleChange}></input>
+                <button onClick={() => addItem()}>
+                    <span>ADD</span>
+                </button>
+            </div>
+            <div className="todolist">
+                {items.map((item) => {
+                    const {_id, name, completed} = item
+                    return <TodoItem name={name} id={_id} setItems={setItems} completed={completed}/>
+                    })}
+            </div>
+        </div>
+    );
 }
 
 export default App;
